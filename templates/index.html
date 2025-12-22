@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StockSphere | Complete control of grocery operations</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --primary-900: #1e293b;
+      --primary-700: #334155;
+      --primary-500: #475569;
+      --primary-400: #64748b;
+      --primary-300: #94a3b8;
+      --accent-500: #3b82f6;
+      --accent-400: #60a5fa;
+      --accent-300: #93c5fd;
+      --muted: #64748b;
+      --bg: #f8fafc;
+      --card-bg: rgba(255,255,255,0.95);
+      --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.08);
+      --radius: 14px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg, #f0f9ff 0%, var(--bg) 60%);
+      color:#222;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      min-height:100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .login-container {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      padding:20px;
+      background: linear-gradient(135deg, #1e293b, #334155);
+      position: relative;
+    }
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text fill="rgba(255,255,255,0.05)" font-size="20" x="10" y="30">🛒</text><text fill="rgba(255,255,255,0.05)" font-size="20" x="40" y="60">📦</text><text fill="rgba(255,255,255,0.05)" font-size="20" x="70" y="90">📊</text></svg>');
+      background-size: 200px 200px;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+    .login-box {
+      width:100%;
+      max-width:420px;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius:20px;
+      padding:36px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      color: white;
+    }
+    .login-box h1{color:white; margin:0 0 8px 0; font-size:26px; text-align:center;}
+    .login-box p{margin:0 0 20px 0; color:#cbd5e1; text-align:center;}
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;margin-bottom:6px;color:#e2e8f0;font-weight:600}
+    input[type="text"], input[type="password"], input[type="number"], input[type="email"], select {
+      width:100%; padding:12px 12px 12px 40px; border:1px solid rgba(255,255,255,0.3); border-radius:8px; font-size:14px; background:rgba(255,255,255,0.1); color:white; position:relative;
+    }
+    input[type="text"]::before { content: '👤'; position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#cbd5e1; }
+    input[type="password"]::before { content: '🔒'; position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#cbd5e1; }
+    input[type="text"]:focus, input[type="password"]:focus {
+      outline:none; border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,0.5);
+    }
+    .btn { padding:12px 20px; border-radius:25px; border:none; cursor:pointer; font-weight:700; background:#3b82f6; color:white; transition: all 0.3s ease; }
+    .btn:hover{ background:#2563eb; transform:translateY(-2px); box-shadow:0 10px 20px rgba(59,130,246,0.4); }
+    .btn-sm{padding:8px 12px; font-size:13px}
+    .btn-danger{background:#d32f2f}
+    .error-message{background:rgba(239,68,68,0.2);color:#fca5a5;padding:10px;border-radius:8px;margin-bottom:12px;display:none; border:1px solid rgba(239,68,68,0.3);}
+
+    /* Modal Form Styles */
+    .modal-form-group { margin-bottom:20px; }
+    .modal-form-group label { display:block; margin-bottom:8px; color:var(--primary-700); font-weight:600; font-size:14px; }
+    .modal-form-group input, .modal-form-group select, .modal-form-group textarea {
+      width:100%; padding:12px 16px; border:2px solid #e2e8f0; border-radius:10px; font-size:14px; background:white; color:var(--primary-900);
+      transition: all 0.3s ease; box-sizing:border-box;
+    }
+    .modal-form-group input:focus, .modal-form-group select:focus, .modal-form-group textarea:focus {
+      outline:none; border-color:var(--accent-400); box-shadow:0 0 0 3px rgba(59,130,246,0.1);
+    }
+    .modal-form-group textarea { resize:vertical; min-height:80px; }
+    .modal-form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
+    .modal-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:24px; padding-top:20px; border-top:1px solid #e2e8f0; }
+    .modal-actions .btn { min-width:100px; }
+
+    /* Modal Header Improvements */
+    .modal-content h2 { margin:0; color:var(--primary-800); font-size:20px; font-weight:700; }
+    .modal-content .close-btn { background:none; border:none; font-size:24px; cursor:pointer; color:var(--muted); padding:4px; border-radius:50%; transition:all 0.2s; }
+    .modal-content .close-btn:hover { background:#f1f5f9; color:var(--primary-700); }
+
+    .app { display:flex; gap:28px; padding:20px; min-height:100vh; align-items:flex-start; }
+
+    .sidebar {
+      width:280px;
+      padding:24px;
+      background: linear-gradient(180deg,var(--primary-700), var(--primary-900));
+      color:#fff;
+      border-radius:16px;
+      box-shadow: var(--shadow-md);
+      position:sticky; top:20px; height: calc(100vh - 40px);
+      display:flex; flex-direction:column;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .brand { display:flex; gap:16px; align-items:center; margin-bottom:20px; padding:20px 0; position: relative; z-index: 2; }
+    .logo { width:93px; height:93px; border-radius:16px; object-fit: cover; box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 3px solid rgba(255,255,255,0.2); }
+    .brand-info h3 { margin:0 0 8px 0; font-size:22px; font-weight:800; background: linear-gradient(135deg, #fff, #e2e8f0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .brand-info .admin-role { margin:0 0 6px 0; opacity:1; font-size:14px; font-weight:600; font-family: 'Courier New', monospace; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+    .brand-info .tagline { margin:0; opacity:1; font-size:13px; font-family: 'Georgia', serif; font-style: italic; color: #ffffff; line-height: 1.4; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+    .nav { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; flex:1; position: relative; z-index: 2; }
+    .nav button { background:transparent; border:none; color:#fff; padding:14px 16px; border-radius:12px; text-align:left; cursor:pointer; font-weight:600; font-size:14px; transition: all 0.3s ease; position:relative; overflow:hidden; }
+    .nav button::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background: var(--accent-400); transform: scaleY(0); transition: transform 0.3s ease; }
+    .nav button:hover { background: rgba(255,255,255,0.08); transform: translateX(4px); }
+    .nav button.active { background: rgba(59,130,246,0.15); color: #60a5fa; box-shadow: inset 0 2px 8px rgba(0,0,0,0.1); }
+    .nav button.active::before { transform: scaleY(1); }
+    .nav button.active { background: rgba(255,255,255,0.06); box-shadow: inset 0 4px 10px rgba(0,0,0,0.08) }
+
+    .main {
+      flex:1;
+      padding:20px;
+      min-height:100vh;
+    }
+
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px }
+    .topbar h1 { margin:0; font-size:20px; color:var(--primary-900) }
+
+    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; align-items:start }
+    .stat { grid-column: span 3; background:var(--card-bg); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:center; box-shadow:var(--shadow-sm); border:1px solid rgba(10,40,20,0.03); transition:transform .18s }
+    .stat:hover{ transform:translateY(-6px) }
+    .stat .icon { width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,var(--accent-500), var(--accent-400)); display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800 }
+    .stat .title{ font-size:12px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:0.5px }
+    .stat .value{ font-size:22px; color:var(--primary-700); font-weight:800 }
+    .stat .trend{ font-size:12px; color:var(--muted); margin-top:6px }
+
+    .chart-card { grid-column: span 8; background:var(--card-bg); border-radius:12px; padding:14px; box-shadow:var(--shadow-sm); min-height:280px }
+    .mini-card { grid-column: span 4; background:var(--card-bg); border-radius:12px; padding:14px; box-shadow:var(--shadow-sm); min-height:280px }
+
+    .top-sellers { grid-column: span 12; background:var(--card-bg); border-radius:12px; padding:14px; box-shadow:var(--shadow-sm) }
+
+    .top-sellers table { width:100%; border-collapse:collapse; }
+    .top-sellers th, .top-sellers td { padding:10px; border-bottom:1px solid rgba(20,40,20,0.04); text-align:left }
+    .rank { width:48px; font-weight:900; color:var(--primary-700) }
+    .product-name { font-weight:800 }
+
+    .card { background:var(--card-bg); border-radius:12px; padding:18px; box-shadow:var(--shadow-sm); margin-bottom:16px }
+    table { width:100%; border-collapse:collapse }
+    th, td { padding:12px; border-bottom:1px solid #eee; text-align:left }
+
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; padding:20px }
+    .modal.active { display:flex }
+    .modal-content { width:100%; max-width:720px; background:white; border-radius:12px; padding:22px; box-shadow:0 30px 60px rgba(0,0,0,0.18); max-height:90vh; overflow:auto }
+
+    @media (max-width:1100px){
+      .stat{grid-column:span 6}
+      .chart-card{grid-column:span 12}
+      .mini-card{grid-column:span 12}
+    }
+    @media (max-width:720px){
+      .sidebar{display:none}
+      .stat{grid-column:span 12}
+      .top-sellers{padding:12px}
+      .main{padding:12px}
+    }
+
+    canvas { width:100% !important; height:100% !important }
+    .chart-card canvas { height:240px !important }
+    .mini-card canvas { height:240px !important }
+
+    .count-up { display:inline-block }
+
+    .receipt {
+      font-family: 'Courier New', monospace;
+      max-width: 320px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 2px solid #000;
+      background: #fff;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      border-radius: 8px;
+    }
+    .receipt h3 { margin: 0 0 10px 0; font-size: 20px; text-decoration: underline; }
+    .receipt p { margin: 5px 0; font-size: 14px; }
+    .receipt .header { font-weight: bold; }
+    .receipt .items { text-align: left; margin: 10px 0; }
+    .receipt .item { margin: 5px 0; }
+    .receipt .total { border-top: 1px solid #000; padding-top: 10px; font-weight: bold; font-size: 16px; }
+    .receipt hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginPage" class="login-container">
+    <div class="login-box">
+      <img src="static/loginpage_logo.png" alt="Login Logo" style="width:150px; height:150px; display:block; margin:0 auto 20px; border-radius:15px; box-shadow: 0 6px 12px rgba(0,0,0,0.3); object-fit: cover;">
+      <h1>StockSphere</h1>
+      <p>Complete control of grocery operations.</p>
+      <div id="loginError" class="error-message"></div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Username</label>
+          <input id="username" type="text" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input id="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn" type="submit">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP (hidden initially) -->
+  <div id="appContainer" style="display:none">
+    <div class="app">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <img src="static/homepage_logo.png" alt="Store Logo" class="logo">
+          <div class="brand-info">
+            <h3>StockSphere</h3>
+            <p id="adminName" class="admin-role">Administrator</p>
+            <p class="tagline">Complete control of grocery operations.</p>
+          </div>
+        </div>
+
+        <nav>
+          <ul class="nav">
+            <li><button class="nav-btn active" data-section="dashboard">📊 Dashboard</button></li>
+            <li><button class="nav-btn" data-section="products">📦 Products</button></li>
+            <li><button class="nav-btn" data-section="categories">📂 Categories</button></li>
+            <li><button class="nav-btn" data-section="suppliers">🏢 Suppliers</button></li>
+            <li><button class="nav-btn" data-section="pos">💰 New Sale (POS)</button></li>
+            <li><button class="nav-btn" data-section="sales">📈 Sales History</button></li>
+            <li><button class="nav-btn" data-section="lowstock">⚠️ Low Stock</button></li>
+            <li style="margin-top:20px"><button id="logoutBtn" class="nav-btn" style="background: rgba(239,68,68,0.1); color: #fca5a5;">🚪 Logout</button></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="main">
+        <div class="topbar">
+          <h1 id="pageTitle">Dashboard</h1>
+          <div>
+            <button id="refreshBtn" class="btn btn-sm">Refresh</button>
+          </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="dashboard-section">
+          <img src="static/dashboard_banner.png" alt="Dashboard Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <div class="grid">
+            <div class="stat">
+              <div class="icon">P</div>
+              <div>
+                <div class="title">Total Products</div>
+                <div class="value"><span id="totalProducts" class="count-up">0</span></div>
+                <div class="trend"><span id="totalProductsTrend">—</span></div>
+              </div>
+            </div>
+
+            <div class="stat">
+              <div class="icon">₹</div>
+              <div>
+                <div class="title">Stock Value</div>
+                <div class="value"><span id="stockValue">₹0</span></div>
+                <div class="trend"><span id="stockValueTrend">—</span></div>
+              </div>
+            </div>
+
+            <div class="stat">
+              <div class="icon">⚠</div>
+              <div>
+                <div class="title">Low Stock Items</div>
+                <div class="value"><span id="lowStockCount">0</span></div>
+                <div class="trend"><span id="lowStockTrend">—</span></div>
+              </div>
+            </div>
+
+            <div class="stat">
+              <div class="icon">M</div>
+              <div>
+                <div class="title">Monthly Revenue</div>
+                <div class="value"><span id="monthlyRevenue">₹0</span></div>
+                <div class="trend"><span id="monthlyRevenueTrend">—</span></div>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <h3 style="margin:0 0 12px 0; color:var(--primary-700)">Sales Overview — Last 12 Months</h3>
+              <canvas id="salesByMonthChart"></canvas>
+            </div>
+
+            <div class="mini-card">
+              <h3 style="margin:0 0 8px 0; color:var(--primary-700)">Revenue by Category</h3>
+              <canvas id="salesByCategoryChart"></canvas>
+            </div>
+
+            <div id="topSellersContainer" class="top-sellers">
+              <h3 style="margin:0 0 12px 0; color:var(--primary-700)">Top Selling Products</h3>
+              <!-- populated dynamically -->
+            </div>
+          </div>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section id="products" class="content-section" style="display:none">
+          <img src="static/productpage_banner.png" alt="Products Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h2 style="margin:0;color:var(--primary-700)">Product Management</h2>
+              <button class="btn" onclick="openProductModal()" style="background:linear-gradient(135deg, #10b981, #059669);">➕ Add Product</button>
+            </div>
+
+            <div style="margin-bottom:12px">
+              <input id="productSearch" placeholder="Search products by name or SKU..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #eee">
+            </div>
+
+            <div id="productsTable"></div>
+          </div>
+        </section>
+
+        <!-- CATEGORIES -->
+        <section id="categories" class="content-section" style="display:none">
+          <img src="static/categories_banner.png" alt="Categories Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h2 style="margin:0;color:var(--green-700)">Category Management</h2>
+              <button class="btn" onclick="openCategoryModal()" style="background:linear-gradient(135deg, #10b981, #059669);">➕ Add Category</button>
+            </div>
+            <div id="categoriesTable"></div>
+          </div>
+        </section>
+
+        <!-- SUPPLIERS -->
+        <section id="suppliers" class="content-section" style="display:none">
+          <img src="static/supplierpage_banner.png" alt="Suppliers Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h2 style="margin:0;color:var(--green-700)">Supplier Management</h2>
+              <button class="btn" onclick="openSupplierModal()" style="background:linear-gradient(135deg, #10b981, #059669);">➕ Add Supplier</button>
+            </div>
+            <div id="suppliersTable"></div>
+          </div>
+        </section>
+
+        <!-- POS -->
+        <section id="pos" class="content-section" style="display:none">
+          <img src="static/POS_banner.png" alt="POS Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <div class="card">
+            <h2 style="color:var(--green-700)">Point of Sale</h2>
+            <div style="margin:12px 0">
+              <input id="posSearch" placeholder="Search product by name or SKU..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #eee">
+            </div>
+            <div id="posProducts"></div>
+
+            <h3 style="margin-top:18px;color:var(--green-700)">Shopping Cart</h3>
+            <div id="cartItems"></div>
+            <div style="text-align:right; margin-top:12px; font-weight:800; color:var(--green-700)" id="cartTotal">Total: ₹0.00</div>
+
+            <div style="margin-top:12px">
+              <label>Payment Method</label>
+              <select id="paymentMethod" style="width:100%; padding:10px; border-radius:8px; border:1px solid #eee">
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+              </select>
+            </div>
+
+            <div style="margin-top:12px">
+              <button class="btn" onclick="processSale()">Complete Sale</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SALES -->
+        <section id="sales" class="content-section" style="display:none">
+          <img src="static/sales_history.png" alt="Sales History Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <div class="card">
+            <h2 style="color:var(--green-700)">Sales History</h2>
+            <div id="salesTable"></div>
+          </div>
+        </section>
+
+        <!-- LOW STOCK -->
+        <section id="lowstock" class="content-section" style="display:none">
+          <img src="static/low_stock.png" alt="Low Stock Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <div class="card">
+            <div style="margin-bottom:12px" class="alert">
+              <strong>Attention!</strong> These products are below their reorder point and need restocking.
+            </div>
+            <h2 style="color:var(--green-700)">Low Stock Alert</h2>
+            <div id="lowStockTable"></div>
+          </div>
+        </section>
+
+        <!-- Keep modals (merged from original) -->
+        <!-- PRODUCT MODAL -->
+        <div id="productModal" class="modal">
+          <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+              <h2 id="productModalTitle">Add Product</h2>
+              <button class="close-btn" onclick="closeProductModal()">×</button>
+            </div>
+
+            <form id="productForm">
+              <input type="hidden" id="productId">
+
+              <div class="modal-form-grid">
+                <div class="modal-form-group">
+                  <label>📦 Product Name*</label>
+                  <input id="productName" type="text" required>
+                </div>
+                <div class="modal-form-group">
+                  <label>🏷️ SKU*</label>
+                  <input id="productSku" type="text" required>
+                </div>
+              </div>
+
+              <div class="modal-form-grid">
+                <div class="modal-form-group">
+                  <label>💰 Price (₹)*</label>
+                  <input id="productPrice" type="number" step="0.01" required>
+                </div>
+                <div class="modal-form-group">
+                  <label>💵 Cost (₹)*</label>
+                  <input id="productCost" type="number" step="0.01" required>
+                </div>
+              </div>
+
+              <div class="modal-form-grid">
+                <div class="modal-form-group">
+                  <label>📊 Current Stock*</label>
+                  <input id="productStock" type="number" required>
+                </div>
+                <div class="modal-form-group">
+                  <label>⚠️ Reorder Point*</label>
+                  <input id="productReorder" type="number" required>
+                </div>
+              </div>
+
+              <div class="modal-form-grid">
+                <div class="modal-form-group">
+                  <label>📂 Category</label>
+                  <select id="productCategory"></select>
+                </div>
+                <div class="modal-form-group">
+                  <label>🏢 Supplier</label>
+                  <select id="productSupplier"></select>
+                </div>
+              </div>
+
+              <div class="modal-form-group">
+                <label>📝 Description</label>
+                <textarea id="productDescription" rows="3"></textarea>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-danger" onclick="closeProductModal()">Cancel</button>
+                <button class="btn" type="submit">💾 Save Product</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- CATEGORY MODAL -->
+        <div id="categoryModal" class="modal">
+          <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+              <h2 id="categoryModalTitle">Add Category</h2>
+              <button class="close-btn" onclick="closeCategoryModal()">×</button>
+            </div>
+            <form id="categoryForm">
+              <input type="hidden" id="categoryId">
+
+              <div class="modal-form-group">
+                <label>📂 Category Name*</label>
+                <input id="categoryName" type="text" required>
+              </div>
+
+              <div class="modal-form-group">
+                <label>📝 Description</label>
+                <textarea id="categoryDescription" rows="3" placeholder="Optional description for this category"></textarea>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-danger" onclick="closeCategoryModal()">Cancel</button>
+                <button class="btn" type="submit">💾 Save Category</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- SUPPLIER MODAL -->
+        <div id="supplierModal" class="modal">
+          <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+              <h2 id="supplierModalTitle">Add Supplier</h2>
+              <button onclick="closeSupplierModal()" style="background:none;border:none;font-size:22px;cursor:pointer">×</button>
+            </div>
+            <form id="supplierForm">
+              <input type="hidden" id="supplierId">
+
+              <div class="modal-form-group">
+                <label>🏢 Supplier Name*</label>
+                <input id="supplierName" type="text" required>
+              </div>
+
+              <div class="modal-form-grid">
+                <div class="modal-form-group">
+                  <label>👤 Contact Person</label>
+                  <input id="supplierContact" type="text">
+                </div>
+                <div class="modal-form-group">
+                  <label>📞 Phone</label>
+                  <input id="supplierPhone" type="tel">
+                </div>
+              </div>
+
+              <div class="modal-form-group">
+                <label>📧 Email</label>
+                <input id="supplierEmail" type="email">
+              </div>
+
+              <div class="modal-form-group">
+                <label>📍 Address</label>
+                <textarea id="supplierAddress" rows="3" placeholder="Full address including city, state, and postal code"></textarea>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-danger" onclick="closeSupplierModal()">Cancel</button>
+                <button class="btn" type="submit">💾 Save Supplier</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- RECEIPT MODAL -->
+        <div id="receiptModal" class="modal">
+          <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+              <h2>Sale Receipt</h2>
+              <button onclick="closeReceiptModal()" style="background:none;border:none;font-size:22px;cursor:pointer">×</button>
+            </div>
+            <div id="receiptContent"></div>
+            <div style="margin-top:12px"><button class="btn" onclick="window.print()">Print Receipt</button></div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SINGLE MERGED SCRIPT -->
+  <script>
+    const API_URL = 'http://localhost:5000/api';
+    let authToken = null;
+    let products = [];
+    let categories = [];
+    let suppliers = [];
+    let cart = [];
+    let salesChart = null;
+    let categoryChart = null;
+
+    async function apiCall(endpoint, method = 'GET', body = null){
+      const options = {
+        method,
+        headers: { 'Content-Type':'application/json' }
+      };
+      if (authToken) options.headers['Authorization'] = authToken;
+      if (body) options.body = JSON.stringify(body);
+      const resp = await fetch(API_URL + endpoint, options);
+      return resp.json();
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          authToken = data.token;
+          document.getElementById('adminName').textContent = data.admin ? data.admin.name : 'Administrator';
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('appContainer').style.display = 'block';
+          loadDashboard();
+        } else {
+          document.getElementById('loginError').textContent = data.error || 'Login failed';
+          document.getElementById('loginError').style.display = 'block';
+        }
+      } catch (err) {
+        document.getElementById('loginError').textContent = 'Connection error. Check server.';
+        document.getElementById('loginError').style.display = 'block';
+      }
+    });
+
+    function logout(){
+      authToken = null;
+      cart = [];
+      document.getElementById('appContainer').style.display = 'none';
+      document.getElementById('loginPage').style.display = 'flex';
+      document.getElementById('loginForm').reset();
+    }
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const section = btn.dataset.section;
+        document.getElementById('pageTitle').textContent = btn.textContent;
+        document.querySelectorAll('.content-section, .dashboard-section')
+  .forEach(s => s.style.display = 'none');
+        const sec = document.getElementById(section);
+        if (sec) sec.style.display = 'block';
+        switch(section){
+          case 'dashboard': loadDashboard(); break;
+          case 'products': loadProducts(); break;
+          case 'categories': loadCategories(); break;
+          case 'suppliers': loadSuppliers(); break;
+          case 'pos': loadPOS(); break;
+          case 'sales': loadSales(); break;
+          case 'lowstock': loadLowStock(); break;
+          case 'dashboard':
+  document.getElementById('dashboard').style.display = 'block';
+  loadDashboard();
+  break;
+
+        }
+      });
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      // refresh current active section
+      const active = document.querySelector('.nav-btn.active').dataset.section;
+      if (active === 'dashboard') loadDashboard();
+      else if (active === 'products') loadProducts();
+      else if (active === 'pos') loadPOS();
+      else if (active === 'sales') loadSales();
+      else if (active === 'lowstock') loadLowStock();
+    });
+
+    function animateCount(el, endValue, formatFn = v => v){
+      if(!el) return;
+      const currentText = el.textContent || '0';
+      const start = Number(String(currentText).replace(/[^\d\.\-]/g,'')) || 0;
+      const duration = 700;
+      const fps = 60;
+      const frames = Math.round(duration / (1000/fps));
+      let frame=0;
+      const diff = endValue - start;
+      const id = setInterval(()=>{
+        frame++;
+        const progress = frame/frames;
+        const eased = progress<0.5 ? 2*progress*progress : -1 + (4-2*progress)*progress;
+        const val = start + diff*eased;
+        el.textContent = formatFn(Math.round(val*100)/100);
+        if(frame>=frames){ clearInterval(id); el.textContent = formatFn(endValue); }
+      }, 1000/fps);
+    }
+
+    async function loadDashboard(){
+      // snapshot
+      try {
+        const snapshot = await apiCall('/admin/analytics/snapshot');
+        const totalProductsEl = document.getElementById('totalProducts');
+        const stockValueEl = document.getElementById('stockValue');
+        const lowStockEl = document.getElementById('lowStockCount');
+        const monthlyRevenueEl = document.getElementById('monthlyRevenue');
+
+        if(snapshot && typeof snapshot.total_products !== 'undefined'){
+          animateCount(totalProductsEl, snapshot.total_products, v => v);
+          animateCount(stockValueEl, snapshot.total_stock_value, v => '₹' + Number(v).toLocaleString('en-IN'));
+          animateCount(lowStockEl, snapshot.low_stock_count, v => v);
+          animateCount(monthlyRevenueEl, snapshot.monthly_revenue, v => '₹' + Number(v).toLocaleString('en-IN'));
+        } else {
+          totalProductsEl.textContent = '0';
+          stockValueEl.textContent = '₹0';
+          lowStockEl.textContent = '0';
+          monthlyRevenueEl.textContent = '₹0';
+        }
+      } catch (err) {
+        console.warn('snapshot fetch failed', err);
+      }
+
+      // charts & tables
+      await loadSalesByMonthChart();
+      await loadSalesByCategoryChart();
+      await loadTopSellersTable();
+    }
+
+    async function loadSalesByMonthChart(){
+      try {
+        const data = await apiCall('/admin/analytics/sales_by_month');
+        const labels = Array.isArray(data) ? data.map(d => d.month) : [];
+        const values = Array.isArray(data) ? data.map(d => parseFloat(d.total)) : [];
+
+        const ctx = document.getElementById('salesByMonthChart').getContext('2d');
+        if (salesChart) salesChart.destroy();
+
+        const gradient = ctx.createLinearGradient(0,0,0,400);
+        gradient.addColorStop(0, 'rgba(59,130,246,0.9)');
+        gradient.addColorStop(1, 'rgba(59,130,246,0.18)');
+
+        salesChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label:'Sales',
+              data: values,
+              backgroundColor: gradient,
+              borderRadius: 8,
+              maxBarThickness: 36
+            }]
+          },
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{
+              legend:{ display:false },
+              tooltip:{ callbacks:{ label: ctx => `₹${Number(ctx.raw).toLocaleString('en-IN')}` } }
+            },
+            scales:{
+              x:{ grid:{ display:false } },
+              y:{ beginAtZero:true, ticks:{ callback: v => '₹' + Number(v).toLocaleString('en-IN') }, grid:{ color:'rgba(30,70,30,0.05)' } }
+            }
+          }
+        });
+      } catch(err){
+        console.warn('sales chart error', err);
+      }
+    }
+
+    async function loadSalesByCategoryChart(){
+      try {
+        const data = await apiCall('/admin/analytics/sales_by_category');
+        const labels = Array.isArray(data) ? data.map(d => d.category) : [];
+        const values = Array.isArray(data) ? data.map(d => parseFloat(d.total)) : [];
+
+        const ctx = document.getElementById('salesByCategoryChart').getContext('2d');
+        if (categoryChart) categoryChart.destroy();
+
+        categoryChart = new Chart(ctx, {
+          type:'doughnut',
+          data:{
+            labels,
+            datasets:[{
+              data: values,
+              backgroundColor: [
+                'rgba(59,130,246,0.95)',
+                'rgba(96,165,250,0.88)',
+                'rgba(147,197,253,0.84)',
+                'rgba(219,234,254,0.6)',
+                'rgba(186,230,253,0.6)'
+              ],
+              borderWidth: 2,
+              borderColor: '#fff'
+            }]
+          },
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            cutout:'55%',
+            plugins:{ legend:{ position:'bottom' }, tooltip:{ callbacks:{ label: ctx => `${ctx.label}: ₹${Number(ctx.parsed).toLocaleString('en-IN')}` } } }
+          }
+        });
+      } catch(err){
+        console.warn('category chart error', err);
+      }
+    }
+
+    async function loadTopSellersTable(){
+      try {
+        const topSellers = await apiCall('/admin/analytics/topsellers');
+        const container = document.getElementById('topSellersContainer');
+        if (!Array.isArray(topSellers) || topSellers.length === 0){
+          container.innerHTML = '<div style="padding:12px;color:var(--muted)">No sales data available yet.</div>';
+          return;
+        }
+        const rows = topSellers.map((p, idx) => `
+          <tr>
+            <td class="rank">${idx+1}</td>
+            <td class="product-name">${p.name}<div style="font-size:12px;color:#6b6b6b">${p.sku}</div></td>
+            <td>${p.total_sold}</td>
+            <td class="rev">₹${Number(p.revenue).toLocaleString('en-IN')}</td>
+          </tr>
+        `).join('');
+        container.innerHTML = `
+          <table>
+            <thead><tr><th style="width:60px">#</th><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      } catch(err){ console.warn('top sellers error', err); }
+    }
+
+    async function loadProducts(){
+      products = await apiCall('/admin/products');
+      categories = await apiCall('/admin/categories');
+      suppliers = await apiCall('/admin/suppliers');
+      renderProducts(products || []);
+    }
+
+    function renderProducts(list){
+      const container = document.getElementById('productsTable');
+      if (!Array.isArray(list) || list.length === 0){
+        container.innerHTML = '<p style="color:var(--muted)">No products found</p>'; return;
+      }
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>Name</th><th>SKU</th><th>Price</th><th>Stock</th><th>Category</th><th>Actions</th></tr></thead>
+          <tbody>
+          ${list.map(p=>`
+            <tr>
+              <td><strong>${p.name}</strong></td>
+              <td>${p.sku}</td>
+              <td>₹${parseFloat(p.price).toFixed(2)}</td>
+              <td><strong style="color:${p.current_stock <= p.reorder_point ? '#d32f2f' : 'var(--green-700)'}">${p.current_stock}</strong></td>
+              <td>${p.category_name || 'N/A'}</td>
+              <td style="display:flex;gap:8px">
+                <button class="btn btn-sm" onclick="editProduct(${p.id})" style="background:#10b981; color:white;" title="Edit Product">✏️ Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})" title="Delete Product">🗑️ Delete</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById('productSearch').addEventListener('input', (e)=>{
+      const q = e.target.value.toLowerCase();
+      const filtered = (products || []).filter(p => (p.name||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q));
+      renderProducts(filtered);
+    });
+
+    function openProductModal(productId=null){
+      if (productId){
+        const p = products.find(x=>x.id===productId);
+        document.getElementById('productModalTitle').textContent = 'Edit Product';
+        document.getElementById('productId').value = p.id;
+        document.getElementById('productName').value = p.name;
+        document.getElementById('productSku').value = p.sku;
+        document.getElementById('productPrice').value = p.price;
+        document.getElementById('productCost').value = p.cost;
+        document.getElementById('productStock').value = p.current_stock;
+        document.getElementById('productReorder').value = p.reorder_point;
+        document.getElementById('productDescription').value = p.description || '';
+      } else {
+        document.getElementById('productModalTitle').textContent = 'Add Product';
+        document.getElementById('productForm').reset();
+        document.getElementById('productId').value = '';
+      }
+      // populate selects
+      document.getElementById('productCategory').innerHTML = '<option value="">None</option>' + (categories||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+      document.getElementById('productSupplier').innerHTML = '<option value="">None</option>' + (suppliers||[]).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('productModal').classList.add('active');
+    }
+
+    function closeProductModal(){ document.getElementById('productModal').classList.remove('active'); }
+
+    document.getElementById('productForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const productId = document.getElementById('productId').value;
+      const payload = {
+        name: document.getElementById('productName').value,
+        sku: document.getElementById('productSku').value,
+        price: parseFloat(document.getElementById('productPrice').value),
+        cost: parseFloat(document.getElementById('productCost').value),
+        current_stock: parseInt(document.getElementById('productStock').value),
+        reorder_point: parseInt(document.getElementById('productReorder').value),
+        category_id: document.getElementById('productCategory').value || null,
+        supplier_id: document.getElementById('productSupplier').value || null,
+        description: document.getElementById('productDescription').value
+      };
+      if (productId) await apiCall(`/admin/products/${productId}`,'PUT',payload);
+      else await apiCall('/admin/products','POST',payload);
+      closeProductModal(); loadProducts();
+    });
+
+    async function editProduct(id){ openProductModal(id); }
+    async function deleteProduct(id){
+      if (!confirm('Delete this product?')) return;
+      await apiCall(`/admin/products/${id}`,'DELETE');
+      loadProducts();
+    }
+
+    async function loadCategories(){
+      categories = await apiCall('/admin/categories');
+      renderCategories();
+    }
+    function renderCategories(){
+      const container = document.getElementById('categoriesTable');
+      if (!categories || categories.length===0){ container.innerHTML = '<p style="color:var(--muted)">No categories found</p>'; return; }
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody>
+          ${categories.map(c=>`<tr><td>${c.name}</td><td>${c.description||'N/A'}</td><td style="display:flex;gap:8px">
+            <button class="btn btn-sm" onclick="editCategory(${c.id})" style="background:#10b981; color:white;" title="Edit Category">✏️ Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteCategory(${c.id})" title="Delete Category">🗑️ Delete</button>
+          </td></tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+    function openCategoryModal(id=null){
+      if (id){ const c = categories.find(x=>x.id===id); document.getElementById('categoryModalTitle').textContent='Edit Category'; document.getElementById('categoryId').value=c.id; document.getElementById('categoryName').value=c.name; document.getElementById('categoryDescription').value=c.description||''; }
+      else { document.getElementById('categoryModalTitle').textContent='Add Category'; document.getElementById('categoryForm').reset(); document.getElementById('categoryId').value=''; }
+      document.getElementById('categoryModal').classList.add('active');
+    }
+    function closeCategoryModal(){ document.getElementById('categoryModal').classList.remove('active'); }
+    document.getElementById('categoryForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const id = document.getElementById('categoryId').value;
+      const payload = { name: document.getElementById('categoryName').value, description: document.getElementById('categoryDescription').value };
+      if (id) await apiCall(`/admin/categories/${id}`,'PUT',payload);
+      else await apiCall('/admin/categories','POST',payload);
+      closeCategoryModal(); loadCategories();
+    });
+    async function editCategory(id){ openCategoryModal(id); }
+    async function deleteCategory(id){ if(!confirm('Delete category?')) return; await apiCall(`/admin/categories/${id}`,'DELETE'); loadCategories(); }
+
+    async function loadSuppliers(){
+      suppliers = await apiCall('/admin/suppliers');
+      renderSuppliers();
+    }
+    function renderSuppliers(){
+      const container = document.getElementById('suppliersTable');
+      if (!suppliers || suppliers.length===0){ container.innerHTML = '<p style="color:var(--muted)">No suppliers found</p>'; return; }
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>Name</th><th>Contact</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${suppliers.map(s=>`<tr><td>${s.name}</td><td>${s.contact_person||'N/A'}</td><td>${s.phone||'N/A'}</td><td>${s.email||'N/A'}</td>
+            <td style="display:flex;gap:8px"><button class="btn btn-sm" onclick="editSupplier(${s.id})" style="background:#10b981; color:white;" title="Edit Supplier">✏️ Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteSupplier(${s.id})" title="Delete Supplier">🗑️ Delete</button></td></tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+    function openSupplierModal(id=null){
+      if (id){ const s = suppliers.find(x=>x.id===id); document.getElementById('supplierModalTitle').textContent='Edit Supplier'; document.getElementById('supplierId').value=s.id; document.getElementById('supplierName').value=s.name; document.getElementById('supplierContact').value=s.contact_person||''; document.getElementById('supplierPhone').value=s.phone||''; document.getElementById('supplierEmail').value=s.email||''; document.getElementById('supplierAddress').value=s.address||''; }
+      else { document.getElementById('supplierModalTitle').textContent='Add Supplier'; document.getElementById('supplierForm').reset(); document.getElementById('supplierId').value=''; }
+      document.getElementById('supplierModal').classList.add('active');
+    }
+    function closeSupplierModal(){ document.getElementById('supplierModal').classList.remove('active'); }
+    document.getElementById('supplierForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const id = document.getElementById('supplierId').value;
+      const payload = {
+        name: document.getElementById('supplierName').value,
+        contact_person: document.getElementById('supplierContact').value,
+        phone: document.getElementById('supplierPhone').value,
+        email: document.getElementById('supplierEmail').value,
+        address: document.getElementById('supplierAddress').value
+      };
+      if (id) await apiCall(`/admin/suppliers/${id}`,'PUT',payload);
+      else await apiCall('/admin/suppliers','POST',payload);
+      closeSupplierModal(); loadSuppliers();
+    });
+    async function editSupplier(id){ openSupplierModal(id); }
+    async function deleteSupplier(id){ if(!confirm('Delete supplier?')) return; await apiCall(`/admin/suppliers/${id}`,'DELETE'); loadSuppliers(); }
+
+    async function loadPOS(){
+      products = await apiCall('/admin/products');
+      cart = [];
+      renderPOSProducts(products || []);
+      updateCart();
+    }
+
+    function renderPOSProducts(list){
+      const container = document.getElementById('posProducts');
+      if (!Array.isArray(list) || list.length===0){ container.innerHTML = '<p style="color:var(--muted)">No products available</p>'; return; }
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>Name</th><th>SKU</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead>
+          <tbody>
+            ${list.map(p=>`
+              <tr>
+                <td><strong>${p.name}</strong></td>
+                <td>${p.sku}</td>
+                <td>₹${parseFloat(p.price).toFixed(2)}</td>
+                <td>${p.current_stock}</td>
+                <td><button class="btn-sm" onclick="addToCart(${p.id})" ${p.current_stock<=0?'disabled':''}>Add to Cart</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById('posSearch').addEventListener('input', (e)=>{
+      const q = e.target.value.toLowerCase();
+      const filtered = (products || []).filter(p => (p.name||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q));
+      renderPOSProducts(filtered);
+    });
+
+    function addToCart(productId){
+      const prod = products.find(p=>p.id===productId);
+      if(!prod) return;
+      const item = cart.find(i=>i.product_id===productId);
+      if (item){
+        if (item.quantity < prod.current_stock) item.quantity++;
+        else { alert('Insufficient stock'); return; }
+      } else {
+        cart.push({ product_id: productId, name: prod.name, price: prod.price, quantity: 1 });
+      }
+      updateCart();
+    }
+    function removeFromCart(productId){ cart = cart.filter(i=>i.product_id !== productId); updateCart(); }
+    function updateCartQuantity(productId, qty){
+      const prod = products.find(p=>p.id===productId);
+      const item = cart.find(i=>i.product_id===productId);
+      qty = parseInt(qty)||0;
+      if (qty<=0) removeFromCart(productId);
+      else if (qty <= prod.current_stock) { item.quantity = qty; updateCart(); }
+      else alert('Insufficient stock');
+    }
+
+    function updateCart(){
+      const container = document.getElementById('cartItems');
+      if (!cart || cart.length===0){ container.innerHTML = '<p style="color:var(--muted)">Cart is empty</p>'; document.getElementById('cartTotal').textContent = 'Total: ₹0.00'; return; }
+      let total = 0;
+      container.innerHTML = cart.map(item=>{
+        const subtotal = item.price * item.quantity; total += subtotal;
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0">
+            <div>
+              <strong>${item.name}</strong><br/>
+              ₹${parseFloat(item.price).toFixed(2)} ×
+              <input type="number" min="1" value="${item.quantity}" onchange="updateCartQuantity(${item.product_id}, this.value)" style="width:70px;padding:6px;border-radius:6px;border:1px solid #eee"/>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:800;color:var(--green-700)">₹${subtotal.toFixed(2)}</div>
+              <button class="btn-sm" onclick="removeFromCart(${item.product_id})" style="background:#d32f2f;margin-top:8px">Remove</button>
+            </div>
+          </div>`;
+      }).join('');
+      document.getElementById('cartTotal').textContent = `Total: ₹${total.toFixed(2)}`;
+    }
+
+    async function processSale(){
+      if (!cart || cart.length===0){ alert('Cart is empty'); return; }
+      const paymentMethod = document.getElementById('paymentMethod').value;
+      const saleData = { items: cart, payment_method: paymentMethod };
+      try {
+        const result = await apiCall('/admin/sales','POST',saleData);
+        alert('Sale completed successfully!');
+        const sale = await apiCall(`/admin/sales/${result.id}`);
+        showReceipt(sale);
+        cart = []; loadPOS();
+      } catch(err){ alert('Error processing sale'); console.error(err); }
+    }
+
+    async function loadSales(){
+      const sales = await apiCall('/admin/sales');
+      renderSales(sales || []);
+    }
+
+  function renderSales(list) {
+  const container = document.getElementById('salesTable');
+
+  if (!Array.isArray(list) || list.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted)">No sales found</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Sale ID</th>
+          <th>Total Amount</th>
+          <th>Payment</th>
+          <th>Date & Time (IST)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(s => `
+          <tr>
+            <td>${s.id}</td>
+            <td>₹${parseFloat(s.total_amount).toFixed(2)}</td>
+            <td>${s.payment_method}</td>
+            <td>${formatIST(s.sale_date)}</td>
+            <td>
+              <button class="btn-sm" onclick="viewSale(${s.id})" style="background:var(--green-400)">View</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+
+    async function viewSale(id){
+      const sale = await apiCall(`/admin/sales/${id}`);
+      showReceipt(sale);
+    }
+
+function formatIST(dateString) {
+  const dateUTC = new Date(dateString);
+
+  // Convert UTC → IST manually (no DST, no system timezone)
+  const istDate = new Date(dateUTC.getTime() + (5 * 60 + 90) * 60 * 1000);
+
+  return istDate.toLocaleString("en-IN", {
+    hour12: true,
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+
+
+  function showReceipt(sale) {
+  const receiptContent = document.getElementById('receiptContent');
+
+  receiptContent.innerHTML = `
+    <div class="receipt">
+      <h3>StockSphere</h3>
+      <p class="header">123 Main Street, City, State</p>
+      <p>Phone: (123) 456-7890</p>
+      <hr>
+      <p><strong>Sale ID:</strong> ${sale.id}</p>
+      <p><strong>Date:</strong> ${formatIST(sale.sale_date)}</p>
+      <p><strong>Payment Method:</strong> ${sale.payment_method}</p>
+      <hr>
+      <div class="items">
+        ${sale.items.map(i => `
+          <div class="item">
+            <strong>${i.product_name}</strong><br>
+            ${i.quantity} x ₹${parseFloat(i.unit_price).toFixed(2)} = ₹${parseFloat(i.subtotal).toFixed(2)}
+          </div>
+        `).join('<hr>')}
+      </div>
+      <hr>
+      <p class="total">Total: ₹${parseFloat(sale.total_amount).toFixed(2)}</p>
+      <p>Thank you for your business!</p>
+      <p>Visit us again soon.</p>
+    </div>
+  `;
+
+  document.getElementById('receiptModal').classList.add('active');
+}
+
+    function closeReceiptModal(){ document.getElementById('receiptModal').classList.remove('active'); }
+
+    async function loadLowStock(){
+      const low = await apiCall('/admin/products/lowstock');
+      const container = document.getElementById('lowStockTable');
+      if (!Array.isArray(low) || low.length===0){ container.innerHTML = '<div style="text-align:center; padding:40px;"><img src="static/empty_low_stock.png" alt="All stock sufficient" style="max-width:200px; height:auto; margin-bottom:20px;"><div style="color:var(--muted)">All products have sufficient stock.</div></div>'; return; }
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>Name</th><th>SKU</th><th>Current Stock</th><th>Reorder Point</th><th>Supplier</th></tr></thead>
+          <tbody>
+            ${low.map(p=>`<tr style="background:${p.current_stock===0?'#ffebee':'#fff8e1'}"><td>${p.name}</td><td>${p.sku}</td><td><strong>${p.current_stock}</strong></td><td>${p.reorder_point}</td><td>${p.supplier_name||'N/A'}</td></tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    window.addEventListener('click', (e)=>{
+      if (e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('active');
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+
+    });
+  </script>
+</body>
+</html>
