@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import Error
@@ -6,28 +6,45 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import secrets
 from functools import wraps
+from dotenv import load_dotenv
+import os
+load_dotenv()
+print("DB_HOST =", os.getenv("DB_HOST"))
+
 
 app = Flask(__name__)
 CORS(app)
 
 # Database configuration
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'omsai000000',
-    'database': 'grocery_store'
-}
+
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+db = mysql.connector.connect(
+    host=os.environ.get("DB_HOST"),
+    user=os.environ.get("DB_USER"),
+    password=os.environ.get("DB_PASSWORD"),
+    database=os.environ.get("DB_NAME"),
+    port=int(os.environ.get("DB_PORT", 20727)),
+    ssl_disabled=False
+)
+
 
 # Token storage (in production, use Redis or database)
 active_tokens = {}
 
 def get_db_connection():
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        return connection
-    except Error as e:
-        print(f"Database connection error: {e}")
-        return None
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME"),
+        port=int(os.getenv("DB_PORT")),
+        ssl_disabled=False
+    )
+
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()

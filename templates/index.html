@@ -228,11 +228,11 @@
   <!-- LOGIN -->
   <div id="loginPage" class="login-container">
     <div class="login-box">
-      <img src="static/loginpage_logo.png" alt="Login Logo" style="width:150px; height:150px; display:block; margin:0 auto 20px; border-radius:15px; box-shadow: 0 6px 12px rgba(0,0,0,0.3); object-fit: cover;">
+      <img src="{{ url_for('static', filename='loginpage_logo.png') }}" alt="Login Logo" style="width:150px; height:150px; display:block; margin:0 auto 20px; border-radius:15px; box-shadow: 0 6px 12px rgba(0,0,0,0.3); object-fit: cover;">
       <h1>StockSphere</h1>
       <p>Complete control of grocery operations.</p>
       <div id="loginError" class="error-message"></div>
-      <form id="loginForm">
+      <form id="loginForm"> 
         <div class="form-group">
           <label>Username</label>
           <input id="username" type="text" autocomplete="username" required>
@@ -252,7 +252,7 @@
       <!-- SIDEBAR -->
       <aside class="sidebar" id="sidebar">
         <div class="brand">
-          <img src="static/homepage_logo.png" alt="Store Logo" class="logo">
+          <img src="{{ url_for('static', filename='homepage_logo.png') }}" alt="Store Logo" class="logo">
           <div class="brand-info">
             <h3>StockSphere</h3>
             <p id="adminName" class="admin-role">Administrator</p>
@@ -285,7 +285,7 @@
 
         <!-- DASHBOARD -->
         <section id="dashboard" class="dashboard-section">
-          <img src="static/dashboard_banner.png" alt="Dashboard Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <img src="{{ url_for('static', filename='dashboard_banner.png') }}" alt="Dashboard Banner" style="width:100%; height:auto; margin-bottom:20px;">
           <div class="grid">
             <div class="stat">
               <div class="icon">P</div>
@@ -342,7 +342,7 @@
 
         <!-- PRODUCTS -->
         <section id="products" class="content-section" style="display:none">
-          <img src="static/productpage_banner.png" alt="Products Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <img src="{{ url_for('static', filename='productpage_banner.png') }}" alt="Products Banner" style="width:100%; height:auto; margin-bottom:20px;">
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
               <h2 style="margin:0;color:var(--primary-700)">Product Management</h2>
@@ -359,7 +359,7 @@
 
         <!-- CATEGORIES -->
         <section id="categories" class="content-section" style="display:none">
-          <img src="static/categories_banner.png" alt="Categories Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <img src="{{ url_for('static', filename='categories_banner.png') }}" alt="Categories Banner" style="width:100%; height:auto; margin-bottom:20px;">
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
               <h2 style="margin:0;color:var(--green-700)">Category Management</h2>
@@ -371,7 +371,7 @@
 
         <!-- SUPPLIERS -->
         <section id="suppliers" class="content-section" style="display:none">
-          <img src="static/supplierpage_banner.png" alt="Suppliers Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <img src="{{ url_for('static', filename='supplierpage_banner.png') }}" alt="Suppliers Banner" style="width:100%; height:auto; margin-bottom:20px;">
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
               <h2 style="margin:0;color:var(--green-700)">Supplier Management</h2>
@@ -383,7 +383,7 @@
 
         <!-- POS -->
         <section id="pos" class="content-section" style="display:none">
-          <img src="static/POS_banner.png" alt="POS Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <img src="{{ url_for('static', filename='POS_banner.png') }}" alt="POS Banner" style="width:100%; height:auto; margin-bottom:20px;">
           <div class="card">
             <h2 style="color:var(--green-700)">Point of Sale</h2>
             <div style="margin:12px 0">
@@ -411,7 +411,7 @@
 
         <!-- SALES -->
         <section id="sales" class="content-section" style="display:none">
-          <img src="static/sales_history.png" alt="Sales History Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <img src="{{ url_for('static', filename='sales_history.png') }}" alt="Sales History Banner" style="width:100%; height:auto; margin-bottom:20px;">
           <div class="card">
             <h2 style="color:var(--green-700)">Sales History</h2>
             <div id="salesTable"></div>
@@ -420,7 +420,7 @@
 
         <!-- LOW STOCK -->
         <section id="lowstock" class="content-section" style="display:none">
-          <img src="static/low_stock.png" alt="Low Stock Banner" style="width:100%; height:auto; margin-bottom:20px;">
+          <img src="{{ url_for('static', filename='low_stock.png') }}" alt="Low Stock Banner" style="width:100%; height:auto; margin-bottom:20px;">
           <div class="card">
             <div style="margin-bottom:12px" class="alert">
               <strong>Attention!</strong> These products are below their reorder point and need restocking.
@@ -1190,7 +1190,9 @@ function formatIST(dateString) {
     async function loadLowStock(){
       const low = await apiCall('/admin/products/lowstock');
       const container = document.getElementById('lowStockTable');
-      if (!Array.isArray(low) || low.length===0){ container.innerHTML = '<div style="text-align:center; padding:40px;"><img src="static/empty_low_stock.png" alt="All stock sufficient" style="max-width:200px; height:auto; margin-bottom:20px;"><div style="color:var(--muted)">All products have sufficient stock.</div></div>'; return; }
+      if (!Array.isArray(low) || low.length===0){ container.innerHTML = `
+        <div style="text-align:center; padding:40px;"><img src="{{ url_for('static', filename='empty_low_stock.png') }}" alt="All stock sufficient" style="max-width:200px; height:auto; margin-bottom:20px;"><div style="color:var(--muted)">All products have sufficient stock.</div></div>
+      `; return; }
       container.innerHTML = `
         <table>
           <thead><tr><th>Name</th><th>SKU</th><th>Current Stock</th><th>Reorder Point</th><th>Supplier</th></tr></thead>
