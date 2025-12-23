@@ -1,3 +1,12 @@
+# Python cache
 __pycache__/
+*.pyc
+
+# Environment variables
 .env
+
+# Local databases (if any)
 *.db
+
+# OS files
+.DS_Store
