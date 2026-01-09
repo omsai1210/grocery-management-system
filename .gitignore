@@ -5,6 +5,15 @@ __pycache__/
 # Environment variables
 .env
 
+# Virtual Environment
+venv/
+env/
+
+# IDE configurations
+.idea/
+.vscode/
+*.swp
+
 # Local databases (if any)
 *.db
 
